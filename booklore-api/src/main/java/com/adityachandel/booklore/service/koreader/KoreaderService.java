@@ -22,6 +22,7 @@ import com.adityachandel.booklore.repository.BookRepository;
 import com.adityachandel.booklore.repository.KoreaderUserRepository;
 import com.adityachandel.booklore.repository.UserBookProgressRepository;
 import com.adityachandel.booklore.repository.UserRepository;
+import com.adityachandel.booklore.service.hardcover.HardcoverSyncService;
 
 @Slf4j
 @AllArgsConstructor
@@ -32,6 +33,7 @@ public class KoreaderService {
     private final BookRepository bookRepository;
     private final UserRepository userRepository;
     private final KoreaderUserRepository koreaderUserRepository;
+    private final HardcoverSyncService hardcoverSyncService;
 
     public ResponseEntity<Map<String, String>> authorizeUser() {
         KoreaderUserDetails authDetails = getAuthDetails();
@@ -76,6 +78,9 @@ public class KoreaderService {
         progressRepository.save(userProgress);
 
         log.info("saveProgress: saved progress='{}' percentage={} for userId={} bookHash={}", koProgress.getProgress(), koProgress.getPercentage(), authDetails.getBookLoreUserId(), bookHash);
+        
+        // Sync progress to Hardcover asynchronously (if enabled for this user)
+        hardcoverSyncService.syncProgressToHardcover(book.getId(), (float) (koProgress.getPercentage() * 100), authDetails.getBookLoreUserId());
     }
 
     private void updateProgressData(UserBookProgressEntity userProgress, KoreaderProgress koProgress) {
