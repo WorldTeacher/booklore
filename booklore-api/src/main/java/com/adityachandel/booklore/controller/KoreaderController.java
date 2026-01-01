@@ -1,7 +1,9 @@
 package com.adityachandel.booklore.controller;
 
 import com.adityachandel.booklore.model.dto.progress.KoreaderProgress;
+import com.adityachandel.booklore.model.dto.response.KoreaderStatisticsResponse;
 import com.adityachandel.booklore.service.koreader.KoreaderService;
+import com.adityachandel.booklore.service.koreader.KoreaderStatisticsService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -14,6 +16,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
 
 @Slf4j
@@ -24,6 +27,7 @@ import java.util.Map;
 public class KoreaderController {
 
     private final KoreaderService koreaderService;
+    private final KoreaderStatisticsService koreaderStatisticsService;
 
     @Operation(summary = "Authorize KoReader user", description = "Authorize a user for KoReader sync.")
     @ApiResponse(responseCode = "200", description = "User authorized successfully")
@@ -56,5 +60,21 @@ public class KoreaderController {
     public ResponseEntity<?> updateProgress(@Parameter(description = "KoReader progress object") @Valid @RequestBody KoreaderProgress koreaderProgress) {
         koreaderService.saveProgress(koreaderProgress.getDocument(), koreaderProgress);
         return ResponseEntity.ok(Map.of("status", "progress updated"));
+    }
+
+    @Operation(summary = "Get KOReader statistics", description = "Retrieve all KOReader statistics for the authenticated user.")
+    @ApiResponse(responseCode = "200", description = "Statistics retrieved successfully")
+    @GetMapping("/statistics")
+    public ResponseEntity<List<KoreaderStatisticsResponse>> getStatistics() {
+        List<KoreaderStatisticsResponse> statistics = koreaderStatisticsService.getUserStatistics();
+        return ResponseEntity.ok(statistics);
+    }
+
+    @Operation(summary = "Get KOReader statistics for a book", description = "Retrieve KOReader statistics for a specific book.")
+    @ApiResponse(responseCode = "200", description = "Book statistics retrieved successfully")
+    @GetMapping("/statistics/book/{bookId}")
+    public ResponseEntity<KoreaderStatisticsResponse> getBookStatistics(@Parameter(description = "Book ID") @PathVariable Long bookId) {
+        KoreaderStatisticsResponse statistics = koreaderStatisticsService.getBookStatistics(bookId);
+        return ResponseEntity.ok(statistics);
     }
 }
