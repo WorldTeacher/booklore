@@ -3,6 +3,7 @@ package com.adityachandel.booklore.service.file;
 import com.adityachandel.booklore.mapper.BookMapper;
 import com.adityachandel.booklore.mapper.LibraryMapper;
 import com.adityachandel.booklore.model.dto.FileMoveResult;
+import com.adityachandel.booklore.model.dto.Library;
 import com.adityachandel.booklore.model.dto.request.FileMoveRequest;
 import com.adityachandel.booklore.model.entity.BookEntity;
 import com.adityachandel.booklore.model.entity.LibraryEntity;
@@ -21,7 +22,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @AllArgsConstructor
 @Service
@@ -183,7 +183,10 @@ public class FileMoveService {
         } finally {
             if (isLibraryMonitoredWhenCalled) {
                 log.debug("Registering library paths for library {} with root {}", libraryId, libraryRoot);
-                fileMoveHelper.registerLibraryPaths(libraryId, libraryRoot);
+                LibraryEntity libraryEntity = bookEntity.getLibraryPath().getLibrary();
+                Library library = libraryMapper.toLibrary(libraryEntity);
+                library.setWatch(true);
+                monitoringRegistrationService.registerLibrary(library);
             }
         }
 

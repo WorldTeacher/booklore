@@ -16,6 +16,7 @@ import com.adityachandel.booklore.util.FileUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.pdfbox.Loader;
+import org.apache.pdfbox.io.RandomAccessReadBufferedFile;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.rendering.ImageType;
 import org.apache.pdfbox.rendering.PDFRenderer;
@@ -24,7 +25,6 @@ import org.springframework.stereotype.Service;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.time.Instant;
 import java.util.List;
 
 import static com.adityachandel.booklore.util.FileService.truncate;
@@ -34,7 +34,6 @@ import static com.adityachandel.booklore.util.FileService.truncate;
 public class PdfProcessor extends AbstractFileProcessor implements BookFileProcessor {
 
     private final PdfMetadataExtractor pdfMetadataExtractor;
-    private final BookMetadataRepository bookMetadataRepository;
 
     public PdfProcessor(BookRepository bookRepository,
                         BookAdditionalFileRepository bookAdditionalFileRepository,
@@ -46,7 +45,6 @@ public class PdfProcessor extends AbstractFileProcessor implements BookFileProce
                         PdfMetadataExtractor pdfMetadataExtractor) {
         super(bookRepository, bookAdditionalFileRepository, bookCreatorService, bookMapper, fileService, metadataMatchService);
         this.pdfMetadataExtractor = pdfMetadataExtractor;
-        this.bookMetadataRepository = bookMetadataRepository;
     }
 
     @Override
@@ -61,7 +59,9 @@ public class PdfProcessor extends AbstractFileProcessor implements BookFileProce
 
     @Override
     public boolean generateCover(BookEntity bookEntity) {
-        try (PDDocument pdf = Loader.loadPDF(new File(FileUtils.getBookFullPath(bookEntity)))) {
+        File pdfFile = new File(FileUtils.getBookFullPath(bookEntity));
+        try (RandomAccessReadBufferedFile randomAccessRead = new RandomAccessReadBufferedFile(pdfFile);
+             PDDocument pdf = Loader.loadPDF(randomAccessRead)) {
             return generateCoverImageAndSave(bookEntity.getId(), pdf);
         } catch (OutOfMemoryError e) {
             // Note: Catching OOM is generally discouraged, but for batch processing
