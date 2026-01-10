@@ -14,6 +14,7 @@ import {Textarea} from 'primeng/textarea';
 import {filter, map, take} from 'rxjs/operators';
 import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
 import {AutoComplete} from 'primeng/autocomplete';
+import {AutoCompleteSelectEvent} from 'primeng/autocomplete';
 import {Image} from 'primeng/image';
 import {LazyLoadImageModule} from 'ng-lazyload-image';
 
@@ -78,6 +79,8 @@ export class MetadataPickerComponent implements OnInit {
     {label: 'HC Rating', controlName: 'hardcoverRating', lockedKey: 'hardcoverRatingLocked', fetchedKey: 'hardcoverRating'},
     {label: 'LC ID', controlName: 'lubimyczytacId', lockedKey: 'lubimyczytacIdLocked', fetchedKey: 'lubimyczytacId'},
     {label: 'LC Rating', controlName: 'lubimyczytacRating', lockedKey: 'lubimyczytacRatingLocked', fetchedKey: 'lubimyczytacRating'},
+    {label: 'Ranobedb ID', controlName: 'ranobedbId', lockedKey: 'ranobedbIdLocked', fetchedKey: 'ranobedbId'},
+    {label: 'RD Rating', controlName: 'ranobedbRating', lockedKey: 'ranobedbRatingLocked', fetchedKey: 'ranobedbRating'},
     {label: 'Google ID', controlName: 'googleId', lockedKey: 'googleIdLocked', fetchedKey: 'googleId'},
     {label: 'Pages', controlName: 'pageCount', lockedKey: 'pageCountLocked', fetchedKey: 'pageCount'}
   ];
@@ -157,6 +160,8 @@ export class MetadataPickerComponent implements OnInit {
       hardcoverReviewCount: new FormControl(''),
       lubimyczytacId: new FormControl(''),
       lubimyczytacRating: new FormControl(''),
+      ranobedbId: new FormControl(''),
+      ranobedbRating: new FormControl(''),
       googleId: new FormControl(''),
       seriesName: new FormControl(''),
       seriesNumber: new FormControl(''),
@@ -189,6 +194,8 @@ export class MetadataPickerComponent implements OnInit {
       hardcoverReviewCountLocked: new FormControl(false),
       lubimyczytacIdLocked: new FormControl(false),
       lubimyczytacRatingLocked: new FormControl(false),
+      ranobedbIdLocked: new FormControl(false),
+      ranobedbRatingLocked: new FormControl(false),
       googleIdLocked: new FormControl(false),
       seriesNameLocked: new FormControl(false),
       seriesNumberLocked: new FormControl(false),
@@ -268,6 +275,8 @@ export class MetadataPickerComponent implements OnInit {
           hardcoverReviewCount: metadata.hardcoverReviewCount || null,
           lubimyczytacId: metadata.lubimyczytacId || null,
           lubimyczytacRating: metadata.lubimyczytacRating || null,
+          ranobedbId: metadata.ranobedbId || null,
+          ranobedbRating: metadata.ranobedbRating || null,
           googleId: metadata.googleId || null,
           seriesName: metadata.seriesName || null,
           seriesNumber: metadata.seriesNumber || null,
@@ -300,6 +309,8 @@ export class MetadataPickerComponent implements OnInit {
           hardcoverReviewCountLocked: metadata.hardcoverReviewCountLocked || false,
           lubimyczytacIdLocked: metadata.lubimyczytacIdLocked || false,
           lubimyczytacRatingLocked: metadata.lubimyczytacRatingLocked || false,
+          ranobedbIdLocked: metadata.ranobedbIdLocked || false,
+          ranobedbRatingLocked: metadata.ranobedbRatingLocked || false,
           googleIdLocked: metadata.googleIdLocked || false,
           seriesNameLocked: metadata.seriesNameLocked || false,
           seriesNumberLocked: metadata.seriesNumberLocked || false,
@@ -339,6 +350,8 @@ export class MetadataPickerComponent implements OnInit {
         if (metadata.hardcoverRatingLocked) this.metadataForm.get('hardcoverRating')?.disable({emitEvent: false});
         if (metadata.lubimyczytacIdLocked) this.metadataForm.get('lubimyczytacId')?.disable({emitEvent: false});
         if (metadata.lubimyczytacRatingLocked) this.metadataForm.get('lubimyczytacRating')?.disable({emitEvent: false});
+        if (metadata.ranobedbIdLocked) this.metadataForm.get('ranobedbId')?.disable({emitEvent: false});
+        if (metadata.ranobedbRatingLocked) this.metadataForm.get('ranobedbRating')?.disable({emitEvent: false});
         if (metadata.googleIdLocked) this.metadataForm.get('googleId')?.disable({emitEvent: false});
         if (metadata.pageCountLocked) this.metadataForm.get('pageCount')?.disable({emitEvent: false});
         if (metadata.descriptionLocked) this.metadataForm.get('description')?.disable({emitEvent: false});
@@ -349,10 +362,10 @@ export class MetadataPickerComponent implements OnInit {
     });
   }
 
-  onAutoCompleteSelect(fieldName: string, event: any) {
-    const values = this.metadataForm.get(fieldName)?.value || [];
-    if (!values.includes(event.value)) {
-      this.metadataForm.get(fieldName)?.setValue([...values, event.value]);
+  onAutoCompleteSelect(fieldName: string, event: AutoCompleteSelectEvent) {
+    const values = (this.metadataForm.get(fieldName)?.value as string[]) || [];
+    if (!values.includes(event.value as string)) {
+      this.metadataForm.get(fieldName)?.setValue([...values, event.value as string]);
     }
     (event.originalEvent.target as HTMLInputElement).value = '';
   }
@@ -420,6 +433,8 @@ export class MetadataPickerComponent implements OnInit {
       hardcoverReviewCount: this.metadataForm.get('hardcoverReviewCount')?.value || this.copiedFields['hardcoverReviewCount'] ? this.getNumberOrCopied('hardcoverReviewCount') : null,
       lubimyczytacId: this.metadataForm.get('lubimyczytacId')?.value || this.copiedFields['lubimyczytacId'] ? this.getValueOrCopied('lubimyczytacId') : '',
       lubimyczytacRating: this.metadataForm.get('lubimyczytacRating')?.value || this.copiedFields['lubimyczytacRating'] ? this.getNumberOrCopied('lubimyczytacRating') : null,
+      ranobedbId: this.metadataForm.get('ranobedbId')?.value || this.copiedFields['ranobedbId'] ? this.getValueOrCopied('ranobedbId') : '',
+      ranobedbRating: this.metadataForm.get('ranobedbRating')?.value || this.copiedFields['ranobedbRating'] ? this.getNumberOrCopied('ranobedbRating') : null,
       googleId: this.metadataForm.get('googleId')?.value || this.copiedFields['googleId'] ? this.getValueOrCopied('googleId') : '',
       seriesName: this.metadataForm.get('seriesName')?.value || this.copiedFields['seriesName'] ? this.getValueOrCopied('seriesName') : '',
       seriesNumber: this.metadataForm.get('seriesNumber')?.value || this.copiedFields['seriesNumber'] ? this.getNumberOrCopied('seriesNumber') : null,
@@ -452,6 +467,8 @@ export class MetadataPickerComponent implements OnInit {
       hardcoverReviewCountLocked: this.metadataForm.get('hardcoverReviewCountLocked')?.value,
       lubimyczytacIdLocked: this.metadataForm.get('lubimyczytacIdLocked')?.value,
       lubimyczytacRatingLocked: this.metadataForm.get('lubimyczytacRatingLocked')?.value,
+      ranobedbIdLocked: this.metadataForm.get('ranobedbIdLocked')?.value,
+      ranobedbRatingLocked: this.metadataForm.get('ranobedbRatingLocked')?.value,
       googleIdLocked: this.metadataForm.get('googleIdLocked')?.value,
       seriesNameLocked: this.metadataForm.get('seriesNameLocked')?.value,
       seriesNumberLocked: this.metadataForm.get('seriesNumberLocked')?.value,
@@ -497,6 +514,8 @@ export class MetadataPickerComponent implements OnInit {
       hardcoverReviewCount: current.hardcoverReviewCount === null && original.hardcoverReviewCount !== null,
       lubimyczytacId: !current.lubimyczytacId && !!original.lubimyczytacId,
       lubimyczytacRating: current.lubimyczytacRating === null && original.lubimyczytacRating !== null,
+      ranobedbId: !current.ranobedbId && !!original.ranobedbId,
+      ranobedbRating: current.ranobedbRating === null && original.ranobedbRating !== null,
       googleId: !current.googleId && !!original.googleId,
       seriesName: !current.seriesName && !!original.seriesName,
       seriesNumber: current.seriesNumber === null && original.seriesNumber !== null,
@@ -604,7 +623,7 @@ export class MetadataPickerComponent implements OnInit {
     const formValue = this.metadataForm.get(field)?.value;
     if (formValue === '' || formValue === null || isNaN(formValue)) {
       this.copiedFields[field] = true;
-      return this.fetchedMetadata[field] || null;
+      return (this.fetchedMetadata[field as keyof BookMetadata] as number | null) || null;
     }
     return Number(formValue);
   }
@@ -613,7 +632,7 @@ export class MetadataPickerComponent implements OnInit {
     const formValue = this.metadataForm.get('pageCount')?.value;
     if (formValue === '' || formValue === null || isNaN(formValue)) {
       this.copiedFields['pageCount'] = true;
-      return this.fetchedMetadata.pageCount || null;
+      return (this.fetchedMetadata.pageCount as number | null) || null;
     }
     return Number(formValue);
   }
@@ -622,20 +641,20 @@ export class MetadataPickerComponent implements OnInit {
     const formValue = this.metadataForm.get(field)?.value;
     if (!formValue || formValue === '') {
       this.copiedFields[field] = true;
-      return this.fetchedMetadata[field] || '';
+      return (this.fetchedMetadata[field as keyof BookMetadata] as string) || '';
     }
     return formValue;
   }
 
-  getArrayFromFormField(field: string, fallbackValue: any): any[] {
+  getArrayFromFormField(field: string, fallbackValue: unknown): string[] {
     const fieldValue = this.metadataForm.get(field)?.value;
     if (!fieldValue) {
-      return fallbackValue ? (Array.isArray(fallbackValue) ? fallbackValue : [fallbackValue]) : [];
+      return fallbackValue ? (Array.isArray(fallbackValue) ? fallbackValue as string[] : [fallbackValue as string]) : [];
     }
     if (typeof fieldValue === 'string') {
       return fieldValue.split(',').map(item => item.trim());
     }
-    return Array.isArray(fieldValue) ? fieldValue : [];
+    return Array.isArray(fieldValue) ? fieldValue as string[] : [];
   }
 
   lockAll(): void {
@@ -676,7 +695,7 @@ export class MetadataPickerComponent implements OnInit {
     this.goBack.emit(true);
   }
 
-  hoveredFields: { [key: string]: boolean } = {};
+  hoveredFields: Record<string, boolean> = {};
 
   onMouseEnter(controlName: string): void {
     if (this.isValueCopied(controlName) && !this.isValueSaved(controlName)) {

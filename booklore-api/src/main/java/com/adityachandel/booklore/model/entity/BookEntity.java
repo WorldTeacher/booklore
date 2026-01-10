@@ -3,6 +3,7 @@ package com.adityachandel.booklore.model.entity;
 import com.adityachandel.booklore.convertor.BookRecommendationIdsListConverter;
 import com.adityachandel.booklore.model.dto.BookRecommendationLite;
 import com.adityachandel.booklore.model.enums.BookFileType;
+import com.adityachandel.booklore.util.ArchiveUtils;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -34,6 +35,10 @@ public class BookEntity {
     @Column(name = "book_type")
     private BookFileType bookType;
 
+    @Column(name = "archive_type")
+    @Enumerated(EnumType.STRING)
+    private ArchiveUtils.ArchiveType archiveType;
+
     @Column(name = "file_size_kb")
     private Long fileSizeKb;
 
@@ -42,6 +47,12 @@ public class BookEntity {
 
     @OneToOne(mappedBy = "book", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private BookMetadataEntity metadata;
+
+    @Column(name = "metadata_updated_at")
+    private Instant metadataUpdatedAt;
+
+    @Column(name = "metadata_for_write_updated_at")
+    private Instant metadataForWriteUpdatedAt;
 
     @ManyToOne
     @JoinColumn(name = "library_id", nullable = false)
@@ -59,6 +70,9 @@ public class BookEntity {
 
     @Column(name = "current_hash", length = 128)
     private String currentHash;
+
+    @Column(name = "book_cover_hash", length = 20)
+    private String bookCoverHash;
 
     @Column(name = "deleted")
     @Builder.Default

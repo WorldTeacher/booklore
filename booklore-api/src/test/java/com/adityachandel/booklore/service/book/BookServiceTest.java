@@ -41,20 +41,34 @@ import static org.mockito.Mockito.*;
 @ExtendWith(org.mockito.junit.jupiter.MockitoExtension.class)
 class BookServiceTest {
 
-    @Mock private BookRepository bookRepository;
-    @Mock private PdfViewerPreferencesRepository pdfViewerPreferencesRepository;
-    @Mock private EpubViewerPreferencesRepository epubViewerPreferencesRepository;
-    @Mock private CbxViewerPreferencesRepository cbxViewerPreferencesRepository;
-    @Mock private NewPdfViewerPreferencesRepository newPdfViewerPreferencesRepository;
-    @Mock private FileService fileService;
-    @Mock private BookMapper bookMapper;
-    @Mock private UserBookProgressRepository userBookProgressRepository;
-    @Mock private AuthenticationService authenticationService;
-    @Mock private BookQueryService bookQueryService;
-    @Mock private UserProgressService userProgressService;
-    @Mock private BookDownloadService bookDownloadService;
-    @Mock private MonitoringRegistrationService monitoringRegistrationService;
-    @Mock private BookUpdateService bookUpdateService;
+    @Mock
+    private BookRepository bookRepository;
+    @Mock
+    private PdfViewerPreferencesRepository pdfViewerPreferencesRepository;
+    @Mock
+    private EpubViewerPreferencesRepository epubViewerPreferencesRepository;
+    @Mock
+    private CbxViewerPreferencesRepository cbxViewerPreferencesRepository;
+    @Mock
+    private NewPdfViewerPreferencesRepository newPdfViewerPreferencesRepository;
+    @Mock
+    private FileService fileService;
+    @Mock
+    private BookMapper bookMapper;
+    @Mock
+    private UserBookProgressRepository userBookProgressRepository;
+    @Mock
+    private AuthenticationService authenticationService;
+    @Mock
+    private BookQueryService bookQueryService;
+    @Mock
+    private UserProgressService userProgressService;
+    @Mock
+    private BookDownloadService bookDownloadService;
+    @Mock
+    private MonitoringRegistrationService monitoringRegistrationService;
+    @Mock
+    private BookUpdateService bookUpdateService;
 
     @InjectMocks
     private BookService bookService;
@@ -69,7 +83,7 @@ class BookServiceTest {
                 .id(1L)
                 .permissions(perms)
                 .assignedLibraries(List.of())
-                .build();
+                .isDefaultPassword(false).build();
     }
 
     @Test
@@ -106,7 +120,7 @@ class BookServiceTest {
             List<Book> result = bookService.getBooksByIds(Set.of(2L), false);
 
             assertEquals(1, result.size());
-            assertEquals(2L, result.get(0).getId());
+            assertEquals(2L, result.getFirst().getId());
         }
     }
 
@@ -256,18 +270,6 @@ class BookServiceTest {
     void getBookCover_malformedPath_throwsRuntimeException() {
         when(fileService.getCoverFile(123L)).thenReturn("\0illegal:path");
         assertThrows(RuntimeException.class, () -> bookService.getBookCover(123L));
-    }
-
-    @Test
-    void getBackgroundImage_returnsResource() {
-        Resource mockResource = mock(Resource.class);
-        when(fileService.getBackgroundResource(testUser.getId())).thenReturn(mockResource);
-
-        when(authenticationService.getAuthenticatedUser()).thenReturn(testUser);
-
-        Resource res = bookService.getBackgroundImage();
-
-        assertEquals(mockResource, res);
     }
 
     @Test

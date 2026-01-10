@@ -1,6 +1,9 @@
 package com.adityachandel.booklore.service.kobo;
 
+import com.adityachandel.booklore.config.security.service.AuthenticationService;
 import com.adityachandel.booklore.mapper.BookEntityToKoboSnapshotBookMapper;
+import com.adityachandel.booklore.model.dto.BookLoreUser;
+import com.adityachandel.booklore.model.dto.BookLoreUser.UserPermissions;
 import com.adityachandel.booklore.model.entity.BookEntity;
 import com.adityachandel.booklore.model.entity.BookLoreUserEntity;
 import com.adityachandel.booklore.model.entity.KoboLibrarySnapshotEntity;
@@ -51,6 +54,9 @@ class KoboLibrarySnapshotServiceTest {
     @Mock
     private KoboCompatibilityService koboCompatibilityService;
 
+    @Mock
+    private AuthenticationService authenticationService;
+
     @InjectMocks
     private KoboLibrarySnapshotService service;
 
@@ -61,8 +67,8 @@ class KoboLibrarySnapshotServiceTest {
 
     @BeforeEach
     void setUp() {
-        owner = BookLoreUserEntity.builder().id(1L).build();
-        otherUser = BookLoreUserEntity.builder().id(2L).build();
+        owner = BookLoreUserEntity.builder().id(1L).isDefaultPassword(false).build();
+        otherUser = BookLoreUserEntity.builder().id(2L).isDefaultPassword(false).build();
 
         LibraryEntity ownersLibrary = LibraryEntity.builder()
                 .users(List.of(owner))
@@ -81,6 +87,15 @@ class KoboLibrarySnapshotServiceTest {
                 .id(202L)
                 .library(othersLibrary)
                 .build();
+
+        UserPermissions userPermissions = new UserPermissions();
+        userPermissions.setAdmin(false);
+
+        BookLoreUser mockUser = BookLoreUser.builder()
+                .id(owner.getId())
+                .permissions(userPermissions)
+                .build();
+        when(authenticationService.getAuthenticatedUser()).thenReturn(mockUser);
     }
 
     @Test

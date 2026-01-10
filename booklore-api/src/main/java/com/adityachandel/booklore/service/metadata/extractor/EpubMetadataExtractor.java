@@ -22,19 +22,13 @@ import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.regex.Pattern;
 
 @Slf4j
@@ -46,11 +40,9 @@ public class EpubMetadataExtractor implements FileMetadataExtractor {
 
     // List of all media types that epub4j has so we can lazy load them.
     // Note that we have to add in null to handle files without extentions like mimetype.
-    private static List<MediaType> MEDIA_TYPES = new ArrayList<>();
+    private static final List<MediaType> MEDIA_TYPES = new ArrayList<>();
     static {
-        for (int i = 0; i < MediaTypes.mediaTypes.length; i++) {
-            MEDIA_TYPES.add(MediaTypes.mediaTypes[i]);
-        }
+        MEDIA_TYPES.addAll(Arrays.asList(MediaTypes.mediaTypes));
         MEDIA_TYPES.add(null);
     }
 
@@ -201,6 +193,7 @@ public class EpubMetadataExtractor implements FileMetadataExtractor {
                                     case "booklore:asin" -> builderMeta.asin(content);
                                     case "booklore:goodreads_id" -> builderMeta.goodreadsId(content);
                                     case "booklore:comicvine_id" -> builderMeta.comicvineId(content);
+                                    case "booklore:ranobedb_id" -> builderMeta.ranobedbId(content);
                                     case "booklore:hardcover_id" -> builderMeta.hardcoverId(content);
                                     case "booklore:google_books_id" -> builderMeta.googleId(content);
                                     case "booklore:page_count" -> safeParseInt(content, builderMeta::pageCount);
@@ -235,6 +228,7 @@ public class EpubMetadataExtractor implements FileMetadataExtractor {
                                         }
                                         case "GOODREADS" -> builderMeta.goodreadsId(value);
                                         case "COMICVINE" -> builderMeta.comicvineId(value);
+                                        case "RANOBEDB" -> builderMeta.ranobedbId(value);
                                         case "GOOGLE" -> builderMeta.googleId(value);
                                         case "AMAZON" -> builderMeta.asin(value);
                                         case "HARDCOVER" -> builderMeta.hardcoverId(value);

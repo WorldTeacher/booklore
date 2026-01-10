@@ -288,14 +288,9 @@ public class BookService {
         }
     }
 
-    public Resource getBackgroundImage() {
-        try {
-            BookLoreUser user = authenticationService.getAuthenticatedUser();
-            return fileService.getBackgroundResource(user.getId());
-        } catch (Exception e) {
-            log.error("Failed to get background image: {}", e.getMessage(), e);
-            return fileService.getBackgroundResource(null);
-        }
+    public Resource getBookCover(String coverHash) {
+        BookEntity bookEntity = bookRepository.findByBookCoverHash(coverHash).orElseThrow(() -> ApiError.BOOK_NOT_FOUND.createException(coverHash));
+        return getBookCover(bookEntity.getId());
     }
 
     public ResponseEntity<Resource> downloadBook(Long bookId) {
@@ -339,6 +334,8 @@ public class BookService {
             } catch (IOException e) {
                 log.warn("Failed to delete book file: {}", fullFilePath, e);
                 failedFileDeletions.add(book.getId());
+            } finally {
+                monitoringRegistrationService.registerSpecificPath(fullFilePath.getParent(), book.getLibrary().getId());
             }
         }
 
