@@ -142,7 +142,7 @@ public interface BookOpdsRepository extends JpaRepository<BookEntity, Long>, Jpa
             """)
     Page<Long> findBookIdsByMetadataSearchAndShelfIds(@Param("text") String text, @Param("shelfIds") Collection<Long> shelfIds, Pageable pageable);
 
-    @EntityGraph(attributePaths = {"metadata", "metadata.authors", "metadata.categories", "additionalFiles", "shelves"})
+    @EntityGraph(attributePaths = {"metadata", "metadata.authors", "metadata.categories", "bookFiles", "shelves"})
     @Query("SELECT DISTINCT b FROM BookEntity b JOIN b.shelves s WHERE b.id IN :ids AND s.id IN :shelfIds AND (b.deleted IS NULL OR b.deleted = false)")
     List<BookEntity> findAllWithFullMetadataByIdsAndShelfIds(@Param("ids") Collection<Long> ids, @Param("shelfIds") Collection<Long> shelfIds);
 
@@ -162,7 +162,7 @@ public interface BookOpdsRepository extends JpaRepository<BookEntity, Long>, Jpa
             + "b.addedOn DESC")
     Page<Long> findBookIdsByShelfIds(@Param("shelfIds") Collection<Long> shelfIds, @Param("sortBy") String sortBy, Pageable pageable);
 
-    @EntityGraph(attributePaths = {"metadata", "additionalFiles", "shelves"})
+    @EntityGraph(attributePaths = {"metadata", "bookFiles", "shelves"})
     @Query("SELECT DISTINCT b FROM BookEntity b JOIN b.shelves s WHERE b.id IN :ids AND s.id IN :shelfIds AND (b.deleted IS NULL OR b.deleted = false)")
     List<BookEntity> findAllWithMetadataByIdsAndShelfIds(@Param("ids") Collection<Long> ids, @Param("shelfIds") Collection<Long> shelfIds);
 

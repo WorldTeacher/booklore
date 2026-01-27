@@ -600,6 +600,13 @@ public class OpdsFeedService {
         return DateTimeFormatter.ISO_INSTANT.format(java.time.Instant.now());
     }
 
+    private boolean hasValidFilePath(Book book) {
+        return book.getFileName() != null
+                && book.getLibraryPath() != null
+                && book.getLibraryPath().getPath() != null
+                && book.getFileSubPath() != null;
+    }
+
     private String fileMimeType(Book book) {
         if (book == null || book.getBookType() == null) {
             return "application/octet-stream";
@@ -608,7 +615,7 @@ public class OpdsFeedService {
             case PDF -> "application/pdf";
             case EPUB -> "application/epub+zip";
             case FB2 -> {
-                if (book.getFileName() != null) {
+                if (hasValidFilePath(book)) {
                     ArchiveUtils.ArchiveType type = ArchiveUtils.detectArchiveType(new File(FileUtils.getBookFullPath(book)));
                     if (type == ArchiveUtils.ArchiveType.ZIP) {
                         yield "application/zip";
@@ -628,7 +635,7 @@ public class OpdsFeedService {
                     };
                 }
 
-                if (book.getFileName() != null) {
+                if (hasValidFilePath(book)) {
                     ArchiveUtils.ArchiveType type = ArchiveUtils.detectArchiveType(new File(FileUtils.getBookFullPath(book)));
                     yield switch (type) {
                         case RAR -> "application/vnd.comicbook-rar";
