@@ -616,11 +616,7 @@
 
     <div class="description-section">
       <div [ngClass]="{ 'line-clamp-7': !isExpanded }" class="description-content">
-        <div class="readonly-editor">
-          <p-editor #quillEditor [readonly]="true" [(ngModel)]="book.metadata!.description">
-            <ng-template #header></ng-template>
-          </p-editor>
-        </div>
+        <div class="readonly-editor" [innerHTML]="book.metadata!.description || 'No description available.'"></div>
       </div>
       @if (book.metadata!.description && book.metadata!.description.length > 500) {
         <p-button
