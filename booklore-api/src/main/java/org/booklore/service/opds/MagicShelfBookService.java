@@ -10,10 +10,13 @@ import org.booklore.model.dto.Library;
 import org.booklore.model.entity.BookEntity;
 import org.booklore.model.entity.BookLoreUserEntity;
 import org.booklore.model.entity.MagicShelfEntity;
+import org.booklore.model.entity.UserBookFileProgressEntity;
+import org.booklore.model.entity.UserBookProgressEntity;
 import org.booklore.repository.BookRepository;
 import org.booklore.repository.MagicShelfRepository;
 import org.booklore.repository.UserRepository;
 import org.booklore.service.BookRuleEvaluatorService;
+import org.booklore.service.progress.ReadingProgressService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,6 +26,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -38,6 +42,7 @@ public class MagicShelfBookService {
     private final BookLoreUserTransformer bookLoreUserTransformer;
     private final BookRuleEvaluatorService ruleEvaluatorService;
     private final ObjectMapper objectMapper;
+    private final ReadingProgressService readingProgressService;
 
     public Page<Book> getBooksByMagicShelfId(Long userId, Long magicShelfId, int page, int size) {
         MagicShelfEntity shelf = validateMagicShelfAccess(userId, magicShelfId);
@@ -49,7 +54,24 @@ public class MagicShelfBookService {
 
             Page<BookEntity> booksPage = bookRepository.findAll(specification, pageable);
 
-            return booksPage.map(bookMapper::toBook).map(book -> filterBook(book, userId));
+            // Enrich books with user progress data
+            Set<Long> bookIds = booksPage.getContent().stream()
+                    .map(BookEntity::getId)
+                    .collect(Collectors.toSet());
+            Map<Long, UserBookProgressEntity> progressMap =
+                    readingProgressService.fetchUserProgress(userId, bookIds);
+            Map<Long, UserBookFileProgressEntity> fileProgressMap =
+                    readingProgressService.fetchUserFileProgress(userId, bookIds);
+
+            return booksPage.map(bookEntity -> {
+                Book book = bookMapper.toBook(bookEntity);
+                readingProgressService.enrichBookWithProgress(
+                        book,
+                        progressMap.get(bookEntity.getId()),
+                        fileProgressMap.get(bookEntity.getId())
+                );
+                return filterBook(book, userId);
+            });
         } catch (Exception e) {
             log.error("Failed to parse or execute magic shelf rules", e);
             throw new RuntimeException("Failed to parse or execute magic shelf rules: " + e.getMessage(), e);

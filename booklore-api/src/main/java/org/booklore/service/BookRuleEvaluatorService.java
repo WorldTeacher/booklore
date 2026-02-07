@@ -171,25 +171,25 @@ public class BookRuleEvaluatorService {
     private Predicate buildGreaterThan(Rule rule, CriteriaBuilder cb, Root<BookEntity> root, Join<BookEntity, UserBookProgressEntity> progressJoin) {
         return buildComparisonPredicate(rule, cb, root, progressJoin,
             (field, dateValue) -> cb.greaterThan(field.as(LocalDateTime.class), dateValue),
-            (field, numValue) -> cb.gt(field.as(Number.class), numValue));
+            (field, numValue) -> cb.gt(field.as(Double.class), numValue));
     }
 
     private Predicate buildGreaterThanEqual(Rule rule, CriteriaBuilder cb, Root<BookEntity> root, Join<BookEntity, UserBookProgressEntity> progressJoin) {
         return buildComparisonPredicate(rule, cb, root, progressJoin,
             (field, dateValue) -> cb.greaterThanOrEqualTo(field.as(LocalDateTime.class), dateValue),
-            (field, numValue) -> cb.ge(field.as(Number.class), numValue));
+            (field, numValue) -> cb.ge(field.as(Double.class), numValue));
     }
 
     private Predicate buildLessThan(Rule rule, CriteriaBuilder cb, Root<BookEntity> root, Join<BookEntity, UserBookProgressEntity> progressJoin) {
         return buildComparisonPredicate(rule, cb, root, progressJoin,
             (field, dateValue) -> cb.lessThan(field.as(LocalDateTime.class), dateValue),
-            (field, numValue) -> cb.lt(field.as(Number.class), numValue));
+            (field, numValue) -> cb.lt(field.as(Double.class), numValue));
     }
 
     private Predicate buildLessThanEqual(Rule rule, CriteriaBuilder cb, Root<BookEntity> root, Join<BookEntity, UserBookProgressEntity> progressJoin) {
         return buildComparisonPredicate(rule, cb, root, progressJoin,
             (field, dateValue) -> cb.lessThanOrEqualTo(field.as(LocalDateTime.class), dateValue),
-            (field, numValue) -> cb.le(field.as(Number.class), numValue));
+            (field, numValue) -> cb.le(field.as(Double.class), numValue));
     }
 
     private Predicate buildComparisonPredicate(Rule rule, CriteriaBuilder cb, Root<BookEntity> root,
