@@ -85,6 +85,14 @@ public class BookRuleEvaluatorService {
     private Predicate buildRulePredicate(Rule rule, CriteriaBuilder cb, Root<BookEntity> root, Join<BookEntity, UserBookProgressEntity> progressJoin) {
         if (rule.getField() == null || rule.getOperator() == null) return null;
 
+        // Handle FILE_TYPE and FILE_SIZE specially since they need bookFiles join
+        if (rule.getField() == RuleField.FILE_TYPE) {
+            return buildFileTypePredicate(rule, cb, root);
+        }
+        if (rule.getField() == RuleField.FILE_SIZE) {
+            return buildFileSizePredicate(rule, cb, root);
+        }
+
         return switch (rule.getOperator()) {
             case EQUALS -> buildEquals(rule, cb, root, progressJoin);
             case NOT_EQUALS -> buildNotEquals(rule, cb, root, progressJoin);
@@ -310,6 +318,96 @@ public class BookRuleEvaluatorService {
         return cb.lower(field.as(String.class)).in(lowerList);
     }
 
+    private Predicate buildFileTypePredicate(Rule rule, CriteriaBuilder cb, Root<BookEntity> root) {
+        Join<BookEntity, Object> bookFilesJoin = root.join("bookFiles", JoinType.INNER);
+        Expression<String> bookTypeField = bookFilesJoin.get("bookType").as(String.class);
+        
+        List<String> fileTypes = toStringList(rule.getValue()).stream()
+                .map(String::toUpperCase)
+                .collect(Collectors.toList());
+
+        return switch (rule.getOperator()) {
+            case EQUALS, INCLUDES_ANY -> bookTypeField.in(fileTypes);
+            case NOT_EQUALS, EXCLUDES_ALL -> cb.not(bookTypeField.in(fileTypes));
+            case IS_EMPTY -> {
+                Subquery<Long> subquery = cb.createQuery().subquery(Long.class);
+                Root<BookEntity> subRoot = subquery.from(BookEntity.class);
+                subRoot.join("bookFiles", JoinType.INNER);
+                subquery.select(cb.literal(1L)).where(cb.equal(subRoot.get("id"), root.get("id")));
+                yield cb.not(cb.exists(subquery));
+            }
+            case IS_NOT_EMPTY -> {
+                Subquery<Long> subquery = cb.createQuery().subquery(Long.class);
+                Root<BookEntity> subRoot = subquery.from(BookEntity.class);
+                subRoot.join("bookFiles", JoinType.INNER);
+                subquery.select(cb.literal(1L)).where(cb.equal(subRoot.get("id"), root.get("id")));
+                yield cb.exists(subquery);
+            }
+            default -> cb.conjunction();
+        };
+    }
+
+    private Predicate buildFileSizePredicate(Rule rule, CriteriaBuilder cb, Root<BookEntity> root) {
+        Join<BookEntity, Object> bookFilesJoin = root.join("bookFiles", JoinType.INNER);
+        Expression<Long> fileSizeField = bookFilesJoin.get("fileSizeKb").as(Long.class);
+
+        return switch (rule.getOperator()) {
+            case EQUALS -> {
+                Object value = normalizeValue(rule.getValue(), rule.getField());
+                if (value instanceof Number) {
+                    yield cb.equal(fileSizeField, ((Number) value).longValue());
+                }
+                yield cb.conjunction();
+            }
+            case NOT_EQUALS -> {
+                Object value = normalizeValue(rule.getValue(), rule.getField());
+                if (value instanceof Number) {
+                    yield cb.notEqual(fileSizeField, ((Number) value).longValue());
+                }
+                yield cb.conjunction();
+            }
+            case GREATER_THAN -> {
+                Object value = normalizeValue(rule.getValue(), rule.getField());
+                if (value instanceof Number) {
+                    yield cb.gt(fileSizeField, ((Number) value).longValue());
+                }
+                yield cb.conjunction();
+            }
+            case GREATER_THAN_EQUAL_TO -> {
+                Object value = normalizeValue(rule.getValue(), rule.getField());
+                if (value instanceof Number) {
+                    yield cb.ge(fileSizeField, ((Number) value).longValue());
+                }
+                yield cb.conjunction();
+            }
+            case LESS_THAN -> {
+                Object value = normalizeValue(rule.getValue(), rule.getField());
+                if (value instanceof Number) {
+                    yield cb.lt(fileSizeField, ((Number) value).longValue());
+                }
+                yield cb.conjunction();
+            }
+            case LESS_THAN_EQUAL_TO -> {
+                Object value = normalizeValue(rule.getValue(), rule.getField());
+                if (value instanceof Number) {
+                    yield cb.le(fileSizeField, ((Number) value).longValue());
+                }
+                yield cb.conjunction();
+            }
+            case IN_BETWEEN -> {
+                Object start = normalizeValue(rule.getValueStart(), rule.getField());
+                Object end = normalizeValue(rule.getValueEnd(), rule.getField());
+                if (start instanceof Number && end instanceof Number) {
+                    yield cb.between(fileSizeField, ((Number) start).longValue(), ((Number) end).longValue());
+                }
+                yield cb.conjunction();
+            }
+            case IS_EMPTY -> cb.or(cb.isNull(fileSizeField), cb.equal(fileSizeField, 0L));
+            case IS_NOT_EMPTY -> cb.and(cb.isNotNull(fileSizeField), cb.notEqual(fileSizeField, 0L));
+            default -> cb.conjunction();
+        };
+    }
+
     private Expression<?> getFieldExpression(RuleField field, CriteriaBuilder cb, Root<BookEntity> root, Join<BookEntity, UserBookProgressEntity> progressJoin) {
         return switch (field) {
             case LIBRARY -> root.get("library").get("id");
@@ -318,7 +416,7 @@ public class BookRuleEvaluatorService {
             case DATE_FINISHED -> progressJoin.get("dateFinished");
             case LAST_READ_TIME -> progressJoin.get("lastReadTime");
             case PERSONAL_RATING -> progressJoin.get("personalRating");
-            case FILE_SIZE -> root.get("fileSizeKb");
+            case FILE_SIZE -> null; // FILE_SIZE is handled specially - needs bookFiles join
             case METADATA_SCORE -> root.get("metadataMatchScore");
             case TITLE -> root.get("metadata").get("title");
             case SUBTITLE -> root.get("metadata").get("subtitle");
@@ -340,8 +438,7 @@ public class BookRuleEvaluatorService {
             case RANOBEDB_RATING -> root.get("metadata").get("ranobedbRating");
             case AGE_RATING -> root.get("metadata").get("ageRating");
             case CONTENT_RATING -> root.get("metadata").get("contentRating");
-            case FILE_TYPE -> cb.function("SUBSTRING_INDEX", String.class,
-                    root.get("fileName"), cb.literal("."), cb.literal(-1));
+            case FILE_TYPE -> null; // FILE_TYPE is handled specially - needs bookFiles join
             default -> null;
         };
     }
